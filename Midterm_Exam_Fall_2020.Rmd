@@ -1,0 +1,128 @@
+---
+title: "Midterm Exam"
+author: "Haoyu Wang"
+date: "11/7/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,out.width="0.9\\linewidth",dev="png",fig.align  = 'center', warning = FALSE, message = FALSE)
+library(readr)
+library(corrgram)
+library(tidyverse)
+```
+
+## Instruction
+
+This is your midterm exam that you are expected to work on it alone.  You may NOT  discuss any of the content of your exam with anyone except your instructor. This includes text, chat, email and other online forums.  We expect you to respect and follow the [GRS Academic and Professional Conduct Code](http://www.bu.edu/cas/files/2017/02/GRS-Academic-Conduct-Code-Final.pdf). 
+
+Although you may NOT ask anyone directly, you are allowed to use external resources such as R codes on the Internet.  If you do use someone's code, please make sure you clearly cite the origin of the code.
+
+When you finish, please compile and submit the PDF file and the link to the GitHub repository that contains the entire analysis.
+
+
+## Introduction
+
+In this exam, you will act as both the client and the consultant for the data that you collected in the data collection exercise (20pts).  Please note that you are not allowed to change the data.  The goal of this exam is to demonstrate your ability to perform the statistical analysis that you learned in this class so far.  It is important to note that significance of the analysis is not the main goal of this exam but the focus is on the appropriateness of your approaches.
+
+### Data Description (10pts)
+
+Please explain what your data is about and what the comparison of interest is.  In the process, please make sure to demonstrate that you can load your data properly into R.
+
+```{r }
+Smoking <- read_csv("Smoking.csv")
+summary(Smoking)
+```
+*The data selected for this time are Some cities in China questions about smokers, with the main variables being sex, age, smoking age, smoking degree and amount spent. The main concern of this experiment is whether the cost of smoking is related to sex, smoking years and smoking degree.*
+
+### EDA (10pts)
+
+Please create one (maybe two) figure(s) that highlights the contrast of interest.  Make sure you think ahead and match your figure with the analysis.  For example, if your model requires you to take a log, make sure you take log in the figure as well.
+
+```{r}
+Smoking = Smoking[, 3:7]
+
+cor=cor(Smoking)
+
+corrgram(Smoking, order=TRUE,
+         upper.panel=panel.cor, main="Smoking")
+
+```
+*It can be seen from the correlation coefficient diagram that there is a positive relationship between the amount, age, daily smoking amount and smoking years, and a negative relationship with gender.*
+```{r}
+ggplot(Smoking) +
+        geom_point(aes(x = Smoking$Age, y = Smoking$`$/Pack`), color = "pink") +
+        labs(x = "Age", y = "Dollars per pack")
+
+ggplot(Smoking) +
+        geom_point(aes(x = Smoking$`Smoking Years`, y = Smoking$`$/Pack`), color = "pink") +
+        labs(x = "Smoking Years", y = "Dollars per pack")
+
+ggplot(Smoking) +
+        geom_point(aes(x = Smoking$`Pack/Day`, y = Smoking$`$/Pack` ), color = "pink") +
+        labs(x = "Packs per day", y = "Dollars per pack")
+
+```
+*It can be seen from the scatter plot of the amount spent on smoking and the explanatory variables that there is a linear relationship between the amount spent on smoking and the number of years, age and daily smoking.*
+*In general, the linear regression model can be established in this experiment.*
+
+
+### Power Analysis (10pts)
+
+Please perform power analysis on the project.  Use 80% power, the sample size you used and infer the level of effect size you will be able to detect.  Discuss whether your sample size was enough for the problem at hand.  Please note that method of power analysis should match the analysis.  Also, please clearly state why you should NOT use the effect size from the fitted model.
+
+```{r }
+power.t.test(n =length(Smoking),power=.80)
+```
+*The results of power test showed that the significant level was 0.05 and the delta value was 2.024438. It can be seen from the scatter diagram and correlation coefficient analysis of the previous explanatory variables and the explained variables that although there is also a certain linear relationship between the explanatory variables and the explained variables, this relationship is weak. If the fitting model is used to test, there is a big gap between the test effect and the actual situation.*
+
+
+### Modeling (10pts)
+
+Please pick a regression model that best fits your data and fit your model.  Please make sure you describe why you decide to choose the model. Also, if you are using GLM, make sure you explain your choice of link function as well.
+```{r }
+fit_model = lm(Smoking$`$/Pack` ~ Smoking$Gender + Smoking$Age + Smoking$`Smoking Years`+
+                    Smoking$`Pack/Day`, data = Smoking)
+summary(fit_model)
+confint(fit_model, level = 0.95)
+
+ggplot(Smoking, aes(x = Smoking$`Pack/Day`, y = Smoking$`$/Pack`)) +
+         geom_point(aes(color = Gender, size = `Smoking Years`))+
+         scale_color_gradient(low = "cyan",high = "pink") +
+         labs(x = "Packs per day", y = "Dollars per pack") +
+         theme(legend.position="none") +
+         geom_smooth(method = "lm", se = T, formula = y ~ x, col = "plum")
+```
+
+### Validation (10pts)
+
+Please perform a necessary validation and argue why your choice of the model is appropriate.  
+
+*First of all, in the data set selected in this experiment, the explained variables are continuous variables, so it is not suitable to use classification models such as Loglist models.*
+*Secondly, through the previous correlation coefficient and scatter plot, we can see that there is a certain linear relationship between the explained variables and the explained variables.*
+*Therefore, this experiment thinks that it is appropriate to choose a linear model.*
+
+
+### Inference (10pts)
+
+Based on the result so far please perform statistical inference to compare the comparison of interest.
+
+```{r }
+
+```
+*From the regression results, the statistical relationship between the explanatory variables and the explained variables is not significant, which indicates that the relationship between the explanatory variables and the amount spent by smokers is not very clear. The possible reason is that the sample size of this experiment is small.*
+
+
+### Discussion (10pts)
+
+Please clearly state your conclusion and the implication of the result.
+*Men spend relatively more on smoking than women. In addition, age, length of smoking and daily smoking were positively correlated with the amount of smoking. But this positive relationship is more expensive, but the impact on smoking costs is slowly increasing.*
+
+### Limitations and future opportunity. (10pts)
+
+Please list concerns about your analysis.  Also, please state how you might go about fixing the problem in your future study.
+*In this case, although the linear regression model is used, the model results are deviated because of the interference of multiple collinearity, heteroscedasticity and autocorrelation in linear regression theory. Therefore, in the future study and practice should pay attention to identify and solve these problems. Make the model results more in line with the actual needs.*
+
+### Comments or questions
+If you have any comments or questions, please write them here.
+
